@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Directorio Ministerio</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Lato:wght@300;400;700&display=swap');
+
+  :root {
+    --gold: #C9A84C;
+    --gold-light: #F0D080;
+    --dark: #1A1A2E;
+    --darker: #12121f;
+    --mid: #2D2D4E;
+    --text: #E8E8F0;
+    --text-muted: #9090B0;
+    --accent: #7B5EA7;
+    --green: #4CAF7D;
+    --red: #E05C5C;
+    --border: rgba(201,168,76,0.25);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Lato', sans-serif;
+    background: var(--darker);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  header {
+    background: linear-gradient(135deg, var(--dark) 0%, var(--mid) 100%);
+    border-bottom: 2px solid var(--gold);
+    padding: 20px 30px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  }
+
+  .logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    color: var(--gold);
+    letter-spacing: 1px;
+    white-space: nowrap;
+  }
+
+  .logo span { color: var(--text); font-size: 14px; display: block; font-family: 'Lato', sans-serif; font-weight: 300; }
+
+  .search-wrap {
+    flex: 1;
+    max-width: 500px;
+    position: relative;
+  }
+
+  #searchInput {
+    width: 100%;
+    padding: 10px 18px 10px 42px;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid var(--border);
+    border-radius: 30px;
+    color: var(--text);
+    font-size: 15px;
+    font-family: 'Lato', sans-serif;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  #searchInput:focus { border-color: var(--gold); }
+  #searchInput::placeholder { color: var(--text-muted); }
+
+  .search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: 16px;
+  }
+
+  .stats {
+    font-size: 13px;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+  .stats strong { color: var(--gold); }
+
+  .container {
+    display: flex;
+    height: calc(100vh - 74px);
+  }
+
+  /* LIST PANEL */
+  .list-panel {
+    width: 320px;
+    min-width: 280px;
+    background: var(--dark);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    flex-shrink: 0;
+  }
+
+  .list-panel::-webkit-scrollbar { width: 5px; }
+  .list-panel::-webkit-scrollbar-track { background: transparent; }
+  .list-panel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+
+  .person-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 13px 16px;
+    cursor: pointer;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    transition: background 0.15s;
+  }
+  .person-item:hover { background: rgba(201,168,76,0.07); }
+  .person-item.active {
+    background: linear-gradient(90deg, rgba(201,168,76,0.2) 0%, rgba(201,168,76,0.05) 100%);
+    border-left: 3px solid var(--gold);
+  }
+
+  .avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--dark));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--gold-light);
+    flex-shrink: 0;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .person-info { min-width: 0; flex: 1; }
+  .person-name {
+    font-size: 14px;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--text);
+  }
+  .person-area {
+    font-size: 12px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .celula-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .dot-yes { background: var(--green); }
+  .dot-no { background: var(--red); }
+  .dot-none { background: var(--text-muted); opacity: 0.4; }
+
+  /* DETAIL PANEL */
+  .detail-panel {
+    flex: 1;
+    overflow-y: auto;
+    padding: 30px;
+    background: var(--darker);
+  }
+  .detail-panel::-webkit-scrollbar { width: 5px; }
+  .detail-panel::-webkit-scrollbar-track { background: transparent; }
+  .detail-panel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--text-muted);
+    gap: 12px;
+  }
+  .empty-state .icon { font-size: 52px; opacity: 0.3; }
+  .empty-state p { font-size: 16px; }
+
+  .card {
+    background: var(--dark);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    max-width: 760px;
+    margin: 0 auto;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.4);
+  }
+
+  .card-header {
+    background: linear-gradient(135deg, var(--mid), #1e1e38);
+    padding: 28px 28px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+  }
+
+  .photo-area {
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .photo-circle {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), #3a3060);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 38px;
+    font-weight: 700;
+    color: var(--gold-light);
+    border: 3px solid var(--gold);
+    overflow: hidden;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    position: relative;
+  }
+  .photo-circle:hover .photo-overlay { opacity: 1; }
+  .photo-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s;
+    font-size: 11px;
+    color: white;
+    gap: 3px;
+  }
+  .photo-overlay span { font-size: 20px; }
+  .photo-circle img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+  #photoInput { display: none; }
+
+  .header-info { flex: 1; }
+  .header-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .header-area {
+    font-size: 13px;
+    color: var(--gold);
+    margin-bottom: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .badges { display: flex; gap: 8px; flex-wrap: wrap; }
+  .badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .badge-yes { background: rgba(76,175,125,0.2); color: var(--green); border: 1px solid rgba(76,175,125,0.4); }
+  .badge-no  { background: rgba(224,92,92,0.2); color: var(--red); border: 1px solid rgba(224,92,92,0.4); }
+  .badge-pre { background: rgba(201,168,76,0.2); color: var(--gold); border: 1px solid var(--border); }
+
+  .card-body { padding: 24px 28px; }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .form-group { display: flex; flex-direction: column; gap: 5px; }
+  .form-group.full { grid-column: 1 / -1; }
+
+  label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--gold);
+  }
+
+  input[type=text], input[type=tel], textarea, select {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'Lato', sans-serif;
+    font-size: 14px;
+    padding: 10px 13px;
+    outline: none;
+    transition: border-color 0.2s, background 0.2s;
+    width: 100%;
+  }
+  input[type=text]:focus, input[type=tel]:focus, textarea:focus, select:focus {
+    border-color: var(--gold);
+    background: rgba(255,255,255,0.08);
+  }
+  select { appearance: none; cursor: pointer; }
+  select option { background: var(--dark); }
+  textarea { resize: vertical; min-height: 80px; }
+
+  .card-footer {
+    padding: 16px 28px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+
+  .btn {
+    padding: 10px 24px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-family: 'Lato', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    transition: all 0.2s;
+  }
+  .btn-gold {
+    background: linear-gradient(135deg, var(--gold), #a07830);
+    color: var(--darker);
+  }
+  .btn-gold:hover { filter: brightness(1.15); transform: translateY(-1px); }
+  .btn-outline {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+  }
+  .btn-outline:hover { border-color: var(--text-muted); color: var(--text); }
+
+  .saved-toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--green);
+    color: #fff;
+    font-weight: 700;
+    padding: 12px 22px;
+    border-radius: 10px;
+    font-size: 14px;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.3s;
+    pointer-events: none;
+    z-index: 999;
+  }
+  .saved-toast.show { opacity: 1; transform: translateY(0); }
+
+  .no-results {
+    padding: 40px 16px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 14px;
+  }
+
+  @media (max-width: 700px) {
+    .container { flex-direction: column; height: auto; }
+    .list-panel { width: 100%; height: 260px; }
+    .detail-panel { padding: 16px; }
+    .form-grid { grid-template-columns: 1fr; }
+    header { flex-wrap: wrap; }
+    .stats { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">✦ Ministerio<span>Directorio Consolidado 2025</span></div>
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="searchInput" placeholder="Buscar por nombre, área, líder…">
+  </div>
+  <div class="stats">Total: <strong id="totalCount">0</strong> · Mostrando: <strong id="showCount">0</strong></div>
+</header>
+
+<div class="container">
+  <div class="list-panel" id="listPanel"></div>
+  <div class="detail-panel" id="detailPanel">
+    <div class="empty-state">
+      <div class="icon">🕊️</div>
+      <p>Selecciona un nombre para ver su ficha</p>
+    </div>
+  </div>
+</div>
+
+<div class="saved-toast" id="toast">✓ Guardado correctamente</div>
+
+<script>
+const SHEET_URL = "https://script.google.com/macros/s/AKfycbxI750A46BmY5r0MQK74Z4D3zprbRbMLK0qMqr7aDGYiZ7vO81pDF86vvzVOfZBcciP3w/exec";
+
+const RAW = [{"NOMBRE": "Acaro Fernanda ", "TELEFONO": "", "ASISTE_CELULA": "SI", "TIENE_CELULA": "SI", "PROMEDIO_ASISTENCIA": "3", "NOMBRE_LIDER": "Gaby Gonzalez", "NOMBRE_LIDER_RED": "Ps Silvita Rodriguez ", "AREA_MINISTERIO": "Propesenter", "OBSERVACIONES": ""}, {"NOMBRE": "Achi Mónica", "TELEFONO": "", "ASISTE_CELULA": "si", "TIENE_CELULA": "si", "PROMEDIO_ASISTENCIA": "15-16", "NOMBRE_LIDER": "Rosario Tobar", "NOMBRE_LIDER_RED": "Vive Baquero", "AREA_MINISTERIO": "coro, lunch ", "OBSERVACIONES": ""}, {"NOMBRE": "Adelaida", "TELEFONO": "", "ASISTE_CELULA": "", "TIENE_CELULA": "0 - 3", "PROMEDIO_ASISTENCIA": "", "NOMBRE_LIDER": "Andrea Yépez de Vega", "NOMBRE_LIDER_RED": "Pas. Glinka Navarrete", "AREA_MINISTERIO": "", "OBSERVACIONES": ""}, {"NOMBRE": "Aguirre Rossie", "TELEFONO": "", "ASISTE_CELULA": "", "TIENE_CELULA": "", "PROMEDIO_ASISTENCIA": "", "NOMBRE_LIDER": "", "NOMBRE_LIDER_RED": "", "AREA_MINISTERIO": "", "OBSERVACIONES": ""}, {"NOMBRE": "Albani Barreto ", "TELEFONO": "", "ASISTE_CELULA": "SI", "TIENE_CELULA": "SI", "PROMEDIO_ASISTENCIA": "3-4", "NOMBRE_LIDER": "Nancy Murillo ", "NOMBRE_LIDER_RED": "Gigi Holguín ", "AREA_MINISTERIO": "microfono", "OBSERVACIONES": ""}, {"NOMBRE": "Alexandra Cunalata ", "TELEFONO": "", "ASISTE_CELULA": "SI", "TIENE_CELULA": "SI", "PROMEDIO_ASISTENCIA": "3-4", "NOMBRE_LIDER": "Paula Vallejo ", "NOMBRE_LIDER_RED": "Viviana Baquero ", "AREA_MINISTERIO": "microfono, coro", "OBSERVACIONES": ""}, {"NOMBRE": "Almeida Luis Felipe", "TELEFONO": "", "ASISTE_CELULA": "", "TIENE_CELULA": "", "PROMEDIO_ASISTENCIA": "", "NOMBRE_LIDER": "", "NOMBRE_LIDER_RED": "", "AREA_MINISTERIO": "", "OBSERVACIONES": ""}, {"NOMBRE": "Almeida Rodrigo", "TELEFONO": "", "ASISTE_CELULA": "si", "TIENE_CELULA": "si", "PROMEDIO_ASISTENCIA": "7", "NOMBRE_LIDER": "Jeffrey Huff", "NOMBRE_LIDER_RED": "Jeffrey Huff", "AREA_MINISTERIO": "Micrófono", "OBSERVACIONES": ""}, {"NOMBRE": "Amada Maldonado", "TELEFONO": "", "ASISTE_CELULA": "SI", "TIENE_CELULA": "SI", "PROMEDIO_ASISTENCIA": "mas de 8", "NOMBRE_LIDER": "Ximena Romero", "NOMBRE_LIDER_RED": "Ma. Paulina Gonzalez", "AREA_MINISTERIO": "coro", "OBSERVACIONES": ""}, {"NOMBRE": "Andrade Bryan", "TELEFONO": "", "ASISTE_CELULA": "Si", "TIENE_CELULA": "Si", "PROMEDIO_ASISTENCIA": "5", "NOMBRE_LIDER": "Jonathan Meneses", "NOMBRE_LIDER_RED": "Pastor Jeffrey", "AREA_MINISTERIO": "Escuela de adoración", "OBSERVACIONES": ""}, {"NOMBRE": "Andrade Kevin", "TELEFONO": "", "ASISTE_CELULA": "Si", "TIENE_CELULA": "Si", "PROMEDIO_ASISTENCIA": "4", "NOMBRE_LIDER": "Jonathan Meneses", "NOMBRE_LIDER_RED": "Pastor Jeffrey", "AREA_MINISTERIO": "Escuela de adoración ", "OBSERVACIONES": ""}, {"NOMBRE": "Andrade Maria Fernanda", "TELEFONO": "", "ASISTE_CELULA": "SI", "TIENE_CELULA": "SI", "PROMEDIO_ASISTENCIA": "10", "NOMBRE_LIDER": "Nathy Hernandez", "NOMBRE_LIDER_RED": "Ma Paulina Gonzalez", "AREA_MINISTERIO": "Coro, Microfono, lunch", "OBSERVACIONES": ""}, {"NOMBRE": "Andrade Oswaldo ", "TELEFONO": "", "ASISTE_CELULA": "Si", "TIENE_CELULA": "Si ", "PROMEDIO_ASISTENCIA": "3", "NOMBRE_LIDER": "Edison Quel ", "NOMBRE_LIDER_RED": "Pastor Rolando", "AREA_MINISTERIO": "Sonido", "OBSERVACIONES": ""}, {"NOMBRE": "Arce Pamela", "TELEFONO": "", "ASISTE_CELULA": "SI", "TIENE_CELULA": "SI", "PROMEDIO_ASISTENCIA": "5", "NOMBRE_LIDER": "Belen Villacis", "NOMBRE_LIDER_RED": "Ma Paulina Gonzalez", "AREA_MINISTERIO": "Coro, lunch, microfono", "OBSERVACIONES": ""}, {"NOMBRE": "Arroyo Rebeca ", "TELEFONO": "", "ASISTE_CELULA": "si", "TIENE_CELULA": "si", "PROMEDIO_ASISTENCIA": "5", "NOMBRE_LIDER": "Mirela Joris", "NOMBRE_LIDER_RED": "Mirela Joris", "AREA_MINISTERIO": "propresenter", "OBSERVACIONES": ""}, {"NOMBRE": "Balseca Ibeth", "TELEFONO": "", "ASISTE_CELULA": "", "TIENE_CELULA": "", "PROMEDIO_ASISTENCIA": "", "NOMBRE_LIDER": "", "NOMBRE_LIDER_RED": "", "AREA_MINISTERIO": "Coro", "OBSERVACIONES": ""}, {"NOMBRE": "Barreto Albani", "TELEFONO": "", "ASISTE_CELULA": "", "TIENE_CELULA": "", "PROMEDIO_ASISTENCIA": "", "NOMBRE_LIDER": "", "NOMBRE_LIDER_RED": "", "AREA_MINISTERIO": "Microfono", "OBSERVACIONES": ""}, {"NOMBRE": "Benítez Elizabeth", "TELEFONO": "", "ASISTE_CELULA": "si", "TIENE_CELULA": "si", "PROMEDIO_ASISTENCIA": "4", "NOMBRE_LIDER": "Sara Huff", "NOMBRE_LIDER_RED": "Sara Huff", "AREA_MINISTERIO": "coro micrófono y propesenter", "OBSERVACIONES": ""}, {"NOMBRE": "Bilbao Patricio", "TELEFONO": "", "ASISTE_CELULA": "si", "TIENE_CELULA": "si", "PROMEDIO_ASISTENCIA": "5", "NOMBRE_LIDER": "Jeffrey Huff", "NOMBRE_LIDER_RED": "Jeffrey Huff", "AREA_MINISTERIO": "coro micrófono ", "OBSERVACIONES": ""}, {"NOMBRE": "Bohorquez Elvis", "TELEFONO": "", "ASISTE_CELULA": "Si", "TIENE_CELULA": "Si", "PROMEDIO_ASISTENCIA": "13", "NOMBRE_LIDER": "Ps Danny", "NOMBRE_LIDER_RED": "Ps Danny", "AREA_MINISTERIO": "Jóvenes, micrófono, escuela de adoración", "OBSERVACIONES": ""}, {"NOMBRE": "Bohorquez Jenny", "TELEFONO": "", "ASISTE_CELULA": "Si", "TIENE_CELULA": "Si", "PROMEDIO_ASISTENCIA": "9", "NOMBRE_LIDER": "María Gabriela González ", "NOMBRE_LIDER_RED": "Pastora Silvia Rodríguez", "AREA_MINISTERIO": "Coro, Micrófono y lunch", "OBSERVACIONES": ""}, {"NOMBRE": "Burbano Jairo ", "TELEFONO": "", "ASISTE_CELULA": "", "TIENE_CELULA": "", "PROMEDIO_ASISTENCIA": "", "NOMBRE_LIDER": "", "NOMBRE_LIDER_RED": "", "AREA_MINISTERIO": "Micrófono", "OBSERVACIONES": ""}, {"NOMBRE": "Cacuango Wilmer", "TELEFONO": "", "ASISTE_CELULA": "si", "TIENE_CELULA": "si", "PROMEDIO_ASISTENCIA": "10-12", "NOMBRE_LIDER": "Santi Lalama", "NOMBRE_LIDER_RED": "Santi Lalama", "AREA_MINISTERIO": "Instrumento, micrófono, jovenes", "OBSERVACIONES": ""}, {"NOMBRE": "Caiza Elsa", "TELEFONO": "", "ASISTE_CELULA": "Si", "TIENE_CELULA": "precelula", "PROMEDIO_ASISTENCIA": "3", "NOMBRE_LIDER": "Irene Romero ", "NOMBRE_LIDER_RED": "Sarita Huff ", "AREA_MINISTERIO": "Propesenter, Coro,lunc, Micrófono, jovenes", "OBSERVACIONES": ""}, {"NOMBRE": "Cajamarca Briggite", "TELEFONO": "", "ASISTE_CELULA": "SI", "TIENE_CELULA": "SI", "PROMEDIO_ASISTENCIA": "5", "NOMBRE_LIDER": "Nicol Salgado", "NOMBRE_LIDER_RED": "Geovy Mantilla", "AREA_MINISTERIO": "Escuela de Adoración, Lunch, ", "OBSERVACIONES": ""}, {"NOMBRE": "Calapaqui Edison", "TELEFONO": "", "ASISTE_CELULA": "SI", "TIENE_CELULA": "SI", "PROMEDIO_ASISTENCIA": "6", "NOMBRE_LIDER": "Sebastian Moncayo", "NOMBRE_LIDER_RED": "Ps Jeff", "AREA_MINISTERIO": "Coro, microfono, lunch", "OBSERVACIONES": ""}, {"NOMBRE": "Calderon Diana", "TELEFONO": "", "ASISTE_CELULA": "", "TIENE_CELULA": "", "PROMEDIO_ASISTENCIA": "", "NOMBRE_LIDER": "", "NOMBRE_LIDER_RED": "", "AREA_MINISTERIO": "", "OBSERVACIONES": ""}, {"NOMBRE": "Cantuña Adriana", "TELEFONO": "", "ASISTE_CELULA": "si", "TIENE_CELULA": "precelula", "PROMEDIO_ASISTENCIA": "3", "NOMBRE_LIDER": "Beira Garcia", "NOMBRE_LIDER_RED": "Glinka Navarrete", "AREA_MINISTERIO": "propresenter", "OBSERVACIONES": ""}, {"NOMBRE": "Carlita ", "TELEFONO": "", "ASISTE_CELULA": "", "TIENE_CELULA": "no tengo célula abierta todavía", "PROMEDIO_ASISTENCIA": "", "NOMBRE_LIDER": "Gabriela Reascos", "NOMBRE_LIDER_RED": "Geovy Mantilla", "AREA_MINISTERIO": "", "OBSERVACIONES": ""}, {"NOMBRE": "Carlos Carranza", "TELEFONO": "", "ASISTE_CELULA": "SI", "TIENE_CELULA": "SI", "PROMEDIO_ASISTENCIA": "mas de 8", "NOMBRE_LIDER": "Patricio Garcia", "NOMBRE_LIDER_RED": "Patricio Garcia", "AREA_MINISTERIO": "Instrumento", "OBSERVACIONES": ""}, {"NOMBRE": "Carolina Mejía ", "TELEFONO": "", "ASISTE_CELULA": "SI", "TIENE_CELULA": "SI", "PROMEDIO_ASISTENCIA": "2-3", "NOMBRE_LIDER": "Andre Yepez", "NOMBRE_LIDER_RED": "Glinka Navarrete ", "AREA_MINISTERIO": "ninguno", "OBSERVACIONES": ""}, {"NOMBRE": "Carpio Diana ", "TELEFONO": "", "ASISTE_CELULA": "si", "TIENE_CELULA": "no", "PROMEDIO_ASISTENCIA": "no", "NOMBRE_LIDER": "Diana Calderon", "NOMBRE_LIDER_RED": "Vivi Baquero", "AREA_MINISTERIO": "lunch propresenter", "OBSERVACIONES": ""}, {"NOMBRE": "Carranza Carlos", "TELEFONO": "", "ASISTE_CELULA": "", "TIENE_CELULA": "", "PROMEDIO_ASISTENCIA": "", "NOMBRE_LIDER": "", "NOMBRE_LIDER_RED": "", "AREA_MINISTERIO": "", "OBSERVACIONES": ""}, {"NOMBRE": "Cedeño Janeth", "TELEFONO": "", "ASISTE_CELULA": "", "TIENE_CELULA": "", "PROMEDIO_ASISTENCIA": "", "NOMBRE_LIDER": "", "NOMBRE_LIDER_RED": "", "AREA_MINISTERIO": "", "OBSERVACIONES": ""}, {"NOMBRE": "Cerna Lorena", "TELEFONO": "", "ASISTE_CELULA": "SI", "TIENE_CELULA": "SI", "PROMEDIO_ASISTENCIA": "11", "NOMBRE_LIDER": "Ps Silvita", "NOMBRE_LIDER_RED": "Ps Silvita", "AREA_MINISTERIO": "Escuela de Adoración", "OBSERVACIONES": ""}, {"NOMBRE": "Chancay Cristina ", "TELEFONO": "", "ASISTE_CELULA": "", "TIENE_CELULA": "", "PROMEDIO_ASISTENCIA": "", "NOMBRE_LIDER": "", "NOMBRE_LIDER_RED": "", "AREA_MINISTERIO": "", "OBSERVACIONES": ""}, {"NOMBRE": "Chango David", "TELEFONO": "", "ASISTE_CELULA": "SI", "TIENE_CELULA": "SI", "PROMEDIO_ASISTENCIA": "4", "NOMBRE_LIDER": "Luis Fe", "NOMBRE_LIDER_RED": "Ps Jeff", "AREA_MINISTERIO": "Instrumento", "OBSERVACIONES": ""}, {"NOMBRE": "Chillagana Andrea", "TELEFONO": "", "ASISTE_CELULA": "si", "TIENE_CELULA": "si", "PROMEDIO_ASISTENCIA": "5", "NOMBRE_LIDER": "Irene Romero", "NOMBRE_LIDER_RED": "Sara Huff", "AREA_MINISTERIO": "coro, microfono, lunch, jovenes", "OBSERVACIONES": ""}, {"NOMBRE": "Chuma Nathaly ", "TELEFONO": "", "ASISTE_CELULA": "", "TIENE_CELULA": "", "PROMEDIO_ASISTENCIA": "", "NOMBRE_LIDER": "", "NOMBRE_LIDER_RED": "", "AREA_MINISTERIO": "", "OBSERVACIONES": ""}, {"NOMBRE": "Cristina Donoso", "TELEFONO": "", "ASISTE_CELULA": "", "TIENE_CELULA": "no tengo célula abierta todavía", "PROMEDIO_ASISTENCIA": "", "NOMBRE_LIDER": "Belén Villacis ", "NOMBRE_LIDER_RED": "María Paulina Gonzalez ", "AREA_MINISTERIO": "", "OBSERVACIONES": ""}, {"NOMBRE": "Cueva Daniela", "TELEFONO": "", "ASISTE_CELULA": "SI", "TIENE_CELULA": "SI", "PROMEDIO_ASISTENCIA": "3", "NOMBRE_LIDER": "Liz Pereza ", "NOMBRE_LIDER_RED": "Geovy Mantilla", "AREA_MINISTERIO": "Lunch, Coro, Microfono, jovenes", "OBSERVACIONES": ""}, {"NOMBRE": "Cunalata Alexandra", "TELEFONO": "", "ASISTE_CELULA": "", "TIENE_CELULA": "", "PROMEDIO_ASISTENCIA": "", "NOMBRE_LIDER": "", "NOMBRE_LIDER_RED": "", "AREA_MINISTERIO": "", "OBSERVACIONES": ""}, {"NOMBRE": "Daniel Defaz ", "TELEFONO": "", "ASISTE_CELULA": "SI", "TIENE_CELULA": "SI", "PROMEDIO_ASISTENCIA": "6-8", "NOMBRE_LIDER": "Napoleón Défaz ", "NOMBRE_LIDER_RED": "Napoleón Défaz ", "AREA_MINISTERIO": "coro", "OBSERVACIONES": ""}, {"NOMBRE": "Daniela ", "TELEFONO": "", "ASISTE_CELULA": "", "TIENE_CELULA": "4 - 6", "PROMEDIO_ASISTENCIA": "", "NOMBRE_LIDER": "Carolina Sánchez ", "NOMBRE_LIDER_RED": "Ps Glinka ", "AREA_MINISTERIO": "", "OBSERVACIONES": ""}, {"NOMBRE": "David", "TELEFONO": "", "ASISTE_CELULA": "", "TIENE_CELULA": "4 - 6", "PROMEDIO_ASISTENCIA": "", "NOMBRE_LIDER": "David Moncayo", "NOMBRE_LIDER_RED": "Ps. Jeffrey Huff", "AREA_MINISTERIO": "", "OBSERVACIONES": ""}, {"NOMBRE": "Defaz Daniel", "TELEFONO": "", "ASISTE_CELULA": "", "TIENE_CELULA": "", "PROMEDIO_ASISTENCIA": "", "NOMBRE_LIDER": "", "NOMBRE_LIDER_RED": "", "AREA_MINISTERIO": "", "OBSERVACIONES": ""}, {"NOMBRE": "Diana Calderón ", "TELEFONO": "", "ASISTE_CELULA": "SI", "TIENE_CELULA": "SI", "PROMEDIO_ASISTENCIA": "5-6", "NOMBRE_LIDER": "Paula Vallejo ", "NOMBRE_LIDER_RED": "Viviana Baquero ", "AREA_MINISTERIO": "propresenter", "OBSERVACIONES": ""}, {"NOMBRE": "Doris Muso", "TELEFONO": "", "ASISTE_CELULA": "SI", "TIENE_CELULA": "SI", "PROMEDIO_ASISTENCIA": "6-8", "NOMBRE_LIDER": "Geovanna Mantilla", "NOMBRE_LIDER_RED": "Geovanna Mantilla", "AREA_MINISTERIO": "coro", "OBSERVACIONES": ""}, {"NOMBRE": "Dueñas Paulina", "TELEFONO": "", "ASISTE_CELULA": "si", "TIENE_CELULA": "si", "PROMEDIO_ASISTENCIA": "8", "NOMBRE_LIDER": "Vivi Baquero", "NOMBRE_LIDER_RED": "Vivi Baquero", "AREA_MINISTERIO": "coro, micròfono, lunch", "OBSERVACIONES": ""}, {"NOMBRE": "Dávalos Daniela", "TELEFONO": "", "ASISTE_CELULA": "si", "TIENE_CELULA": "si", "PROMEDIO_ASISTENCIA": "5", "NOMBRE_LIDER": "Laura Martinez", "NOMBRE_LIDER_RED": "Gladis Zapata", "AREA_MINISTERIO": "coro, jóvenes micrófono, lunch, pre adolescente", "OBSERVACIONES": ""}, {"NOMBRE": "Eduardo Nieto", "TELEFONO": "", "ASISTE_CELULA": "SI", "TIENE_CELULA": "NO", "PROMEDIO_ASISTENCIA": "no tengo celula", "NOMBRE_LIDER": "Juan Pablo Landázuri", "NOMBRE_LIDER_RED": "Juan Pablo Landázuri", "AREA_MINISTERIO": "coro, microfono", "OBSERVACIONES": ""}, {"NOMBRE": "Eli", "TELEFONO": "", "ASISTE_CELULA": "", "TIENE_CELULA": "4 - 6", "PROMEDIO_ASISTENCIA": "", "NOMBRE_LIDER": "Maria del Carmen Montalvo", "NOMBRE_LIDER_RED": "Pastora Silvia de Rodriguez", "AREA_MINISTERIO": "", "OBSERVACIONES": ""}, {"NOMBRE": "Emy", "TELEFONO": "", "ASISTE_CELULA": "", "TIENE_CELULA": "Pre-Célula", "PROMEDIO_ASISTENCIA": "", "NOMBRE_LIDER": "Brigith Cajamarca ", "NOMBRE_LIDER_RED": "Geovy Mantilla ", "AREA_MINISTERIO": "", "OBSERVACIONES": ""}, {"NOMBRE": "Enriquez Wilson", "TELEFONO": "", "ASISTE_CELULA": "si", "TIENE_CELULA": "si", "PROMEDIO_ASISTENCIA": "5", "NOMBRE_LIDER": "Vinicio Pazmiño", "NOMBRE_LIDER_RED": "Vinicio Pazmiño", "AREA_MINISTERIO": "coro", "OBSERVACIONES": ""}, {"NOMBRE": "Erazo Fernanda", "TELEFONO": "", "ASISTE_CELULA": "si", "TIENE_CELULA": "si", "PROMEDIO_ASISTENCIA": "5", "NOMBRE_LIDER": "Sara Huff", "NOMBRE_LIDER_RED": "Sara Huff", "AREA_MINISTERIO": "Coro, microfono, lunch", "OBSERVACIONES": ""}, {"NOMBRE": "Erick", "TELEFONO": "", "ASISTE_CELULA": "", "TIENE_CELULA": "4 - 6", "PROMEDIO_ASISTENCIA": "", "NOMBRE_LIDER": "Jorge Rosero", "NOMBRE_LIDER_RED": "Jorge Rosero", "AREA_MINISTERIO": "", "OBSERVACIONES": ""}, {"NOMBRE": "Fanny jimenez", "TELEFONO": "", "ASISTE_CELULA": "SI", "TIENE_CELULA": "NO", "PROMEDIO_ASISTENCIA": "3-4", "NOMBRE_LIDER": "Charito ", "NOMBRE_LIDER_RED": "Gladis zapata", "AREA_MINISTERIO": "lunch", "OBSERVACIONES": ""}, {"NOMBRE": "Franklin", "TELEFONO": "", "ASISTE_CELULA": "", "TIENE_CELULA": "no tengo célula abierta todavía", "PROMEDIO_ASISTENCIA": "", "NOMBRE_LIDER": "Ramiro Palma", "NOMBRE_LIDER_RED": "Luis Navarrete", "AREA_MINISTERIO": "", "OBSERVACIONES": ""}, {"NOMBRE": "Gabriel Romero", "TELEFONO": "", "ASISTE_CELULA": "SI", "TIENE_CELULA": "SI", "PROMEDIO_ASISTENCIA": "5-6", "NOMBRE_LIDER": "Pablo Mejía", "NOMBRE_LIDER_RED": "Juan Pablo Landázuri ", "AREA_MINISTERIO": "Instrumento", "OBSERVACIONES": ""}, {"NOMBRE": "González Gaby", "TELEFONO": "", "ASISTE_CELULA": "", "TIENE_CELULA": "", "PROMEDIO_ASISTENCIA": "", "NOMBRE_LIDER": "", "NOMBRE_LIDER_RED": "", "AREA_MINISTERIO": "", "OBSERVACIONES": ""}, {"NOMBRE": "Guamán Laddy", "TELEFONO": "", "ASISTE_CELULA": "si", "TIENE_CELULA": "si", "PROMEDIO_ASISTENCIA": "5", "NOMBRE_LIDER": "Paula Vallejo", "NOMBRE_LIDER_RED": "Vivi Baquero", "AREA_MINISTERIO": "coro, micròfono, jovenes adultos, lunch", "OBSERVACIONES": ""}, {"NOMBRE": "Guevara Magali ", "TELEFONO": "", "ASISTE_CELULA": "si", "TIENE_CELULA": "precelula", "PROMEDIO_ASISTENCIA": "", "NOMBRE_LIDER": "Beira Erraez", "NOMBRE_LIDER_RED": "Glinka Navarrete", "AREA_MINISTERIO": "Escuela de adoracion", "OBSERVACIONES": ""}, {"NOMBRE": "Gómez Esteban", "TELEFONO": "", "ASISTE_CELULA": "si", "TIENE_CELULA": "si", "PROMEDIO_ASISTENCIA": "5", "NOMBRE_LIDER": "Luis Felipe Almeida", "NOMBRE_LIDER_RED": "Ps. Jeffrey", "AREA_MINISTERIO": "coro, micròfono", "OBSERVACIONES": ""}, {"NOMBRE": "Hernández Naty", "TELEFONO": "", "ASISTE_CELULA": "si", "TIENE_CELULA": "si", "PROMEDIO_ASISTENCIA": "12", "NOMBRE_LIDER": "Ma Paulina ", "NOMBRE_LIDER_RED": "Ma Paulina ", "AREA_MINISTERIO": "Micrófono ", "OBSERVACIONES": ""}, {"NOMBRE": "Herrera Andrea ", "TELEFONO": "", "ASISTE_CELULA": "SI", "TIENE_CELULA": "NO", "PROMEDIO_ASISTENCIA": "0", "NOMBRE_LIDER": "Paola Herreria", "NOMBRE_LIDER_RED": "Vivi Baquero", "AREA_MINISTERIO": "Escuela de Adoración", "OBSERVACIONES": ""}, {"NOMBRE": "Hinojosa Renata", "TELEFONO": "", "ASISTE_CELULA": "si", "TIENE_CELULA": "si", "PROMEDIO_ASISTENCIA": "5-6", "NOMBRE_LIDER": "", "NOMBRE_LIDER_RED": "", "AREA_MINISTERIO": "coro", "OBSERVACIONES": ""}, {"NOMBRE": "Isaac Méndez ", "TELEFONO": "", "ASISTE_CELULA": "", "TIENE_CELULA": "Pre-Célula", "PROMEDIO_ASISTENCIA": "", "NOMBRE_LIDER": "Jhonatan meneses ", "NOMBRE_LIDER_RED": "Pss jefrey huff ", "AREA_MINISTERIO": "", "OBSERVACIONES": ""}, {"NOMBRE": "Iza Tatiana", "TELEFONO": "", "ASISTE_CELULA": "", "TIENE_CELULA": "", "PROMEDIO_ASISTENCIA": "", "NOMBRE_LIDER": "", "NOMBRE_LIDER_RED": "", "AREA_MINISTERIO": "", "OBSERVACIONES": ""}, {"NOMBRE": "JEANNETH CEDEÑO", "TELEFONO": "", "ASISTE_CELULA": "SI", "TIENE_CELULA": "PRECELULA", "PROMEDIO_ASISTENCIA": "2-3", "NOMBRE_LIDER": "VERONICA MOROCHO ", "NOMBRE_LIDER_RED": "VIVI BAQUERO ", "AREA_MINISTERIO": "propresenter, coro", "OBSERVACIONES": ""}, {"NOMBRE": "JENNY BOHORQUEZ", "TELEFONO": "", "ASISTE_CELULA": "SI", "TIENE_CELULA": "SI", "PROMEDIO_ASISTENCIA": "mas de 8", "NOMBRE_LIDER": "MARIA GARIELA GONZALEZ", "NOMBRE_LIDER_RED": "PASTORA SILVIA RODRIGUEZ", "AREA_MINISTERIO": "coro, microfono", "OBSERVACIONES": ""}, {"NOMBRE": "Jarrin Paola", "TELEFONO": "", "ASISTE_CELULA": "", "TIENE_CELULA": "", "PROMEDIO_ASISTENCIA": "", "NOMBRE_LIDER": "", "NOMBRE_LIDER_RED": "", "AREA_MINISTERIO": "lunch", "OBSERVACIONES": ""}, {"NOMBRE": "Jaya Cristina", "TELEFONO": "", "ASISTE_CELULA": "si", "TIENE_CELULA": "si", "PROMEDIO_ASISTENCIA": "8-10", "NOMBRE_LIDER": "Geovanna Mantilla", "NOMBRE_LIDER_RED": "Geovanna Mantilla", "AREA_MINISTERIO": "Micrófono ", "OBSERVACIONES": ""}, {"NOMBRE": "Jhon Vargas ", "TELEFONO": "", "ASISTE_CELULA": "Si", "TIENE_CELULA": "No", "PROMEDIO_ASISTENCIA": "", "NOMBRE_LIDER": "Ronny Maza", "NOMBRE_LIDER_RED": "Pastor Dany Serrano", "AREA_MINISTERIO": "Sonido", "OBSERVACIONES": ""}, {"NOMBRE": "Jiménez Fanny ", "TELEFONO": "", "ASISTE_CELULA": "", "TIENE_CELULA": "", "PROMEDIO_ASISTENCIA": "", "NOMBRE_LIDER": "", "NOMBRE_LIDER_RED": "", "AREA_MINISTERIO": "", "OBSERVACIONES": ""}, {"NOMBRE": "Johita", "TELEFONO": "", "ASISTE_CELULA": "", "TIENE_CELULA": "4 - 6", "PROMEDIO_ASISTENCIA": "", "NOMBRE_LIDER": "Mirela Juris ", "NOMBRE_LIDER_RED": "Mirela Juris ", "AREA_MINISTERIO": "", "OBSERVACIONES": ""}, {"NOMBRE": "Karina Andrango ", "TELEFONO": "", "ASISTE_CELULA": "SI", "TIENE_CELULA": "SI", "PROMEDIO_ASISTENCIA": "4-5", "NOMBRE_LIDER": "Andrea Vega", "NOMBRE_LIDER_RED": "Pastora Glinka", "AREA_MINISTERIO": "coro, sonido", "OBSERVACIONES": ""}, {"NOMBRE": "Kathe", "TELEFONO": "", "ASISTE_CELULA": "", "TIENE_CELULA": "4 - 6", "PROMEDIO_ASISTENCIA": "", "NOMBRE_LIDER": "Carolina Sanchez", "NOMBRE_LIDER_RED": "Pastora Glinka de Navarrete", "AREA_MINISTERIO": "", "OBSERVACIONES": ""}, {"NOMBRE": "Lesli Zapata ", "TELEFONO": "", "ASISTE_CELULA": "", "TIENE_CELULA": "no tengo célula abierta todavía", "PROMEDIO_ASISTENCIA": "", "NOMBRE_LIDER": "Ruth Sotelo", "NOMBRE_LIDER_RED": "Maria Paulina Gonzalez", "AREA_MINISTERIO": "", "OBSERVACIONES": ""}, {"NOMBRE": "León Liby ", "TELEFONO": "", "ASISTE_CELULA": "", "TIENE_CELULA": "", "PROMEDIO_ASISTENCIA": "", "NOMBRE_LIDER": "", "NOMBRE_LIDER_RED": "", "AREA_MINISTERIO": "", "OBSERVACIONES": ""}, {"NOMBRE": "Libby León ", "TELEFONO": "", "ASISTE_CELULA": "SI", "TIENE_CELULA": "NO", "PROMEDIO_ASISTENCIA": "no tengo celula", "NOMBRE_LIDER": "Gina Herrera", "NOMBRE_LIDER_RED": "Pastora Silvia", "AREA_MINISTERIO": "sonido", "OBSERVACIONES": ""}, {"NOMBRE": "Lincango Jady ", "TELEFONO": "", "ASISTE_CELULA": "si", "TIENE_CELULA": "pre celula", "PROMEDIO_ASISTENCIA": "3", "NOMBRE_LIDER": "Meliza Martínez", "NOMBRE_LIDER_RED": "Vivi Vaquero", "AREA_MINISTERIO": "propresenter, lunch", "OBSERVACIONES": ""}, {"NOMBRE": "Luis Almeida", "TELEFONO": "", "ASISTE_CELULA": "SI", "TIENE_CELULA": "SI", "PROMEDIO_ASISTENCIA": "mas de 8", "NOMBRE_LIDER": "Ps. Jeffrey Huff", "NOMBRE_LIDER_RED": "Ps. David Ingman", "AREA_MINISTERIO": "microfono", "OBSERVACIONES": ""}, {"NOMBRE": "MOISES OÑA", "TELEFONO": "", "ASISTE_CELULA": "SI", "TIENE_CELULA": "SI", "PROMEDIO_ASISTENCIA": "6-8", "NOMBRE_LIDER": "Jeff Huff ", "NOMBRE_LIDER_RED": "Jeff Huff ", "AREA_MINISTERIO": "microfono", "OBSERVACIONES": ""}, {"NOMBRE": "Machado Nicolás ", "TELEFONO": "", "ASISTE_CELULA": "si", "TIENE_CELULA": "celula", "PROMEDIO_ASISTENCIA": "11", "NOMBRE_LIDER": "Ps. Jeffrey Huff", "NOMBRE_LIDER_RED": "Ps. Jefrey Huff", "AREA_MINISTERIO": "jovenes, coro, pre adolescentes", "OBSERVACIONES": ""}, {"NOMBRE": "Maldonado Amada", "TELEFONO": "", "ASISTE_CELULA": "", "TIENE_CELULA": "", "PROMEDIO_ASISTENCIA": "", "NOMBRE_LIDER": "", "NOMBRE_LIDER_RED": "", "AREA_MINISTERIO": "", "OBSERVACIONES": ""}, {"NOMBRE": "Marjorie Romo", "TELEFONO": "", "ASISTE_CELULA": "SI", "TIENE_CELULA": "NO", "PROMEDIO_ASISTENCIA": "no tengo celula", "NOMBRE_LIDER": "Yadira Gabriela Loor Balseca", "NOMBRE_LIDER_RED": "Viviana Baquero", "AREA_MINISTERIO": "lunch", "OBSERVACIONES": ""}, {"NOMBRE": "María Gabriela González ", "TELEFONO": "", "ASISTE_CELULA": "SI", "TIENE_CELULA": "SI", "PROMEDIO_ASISTENCIA": "mas de 8", "NOMBRE_LIDER": "Silvia Rodríguez ", "NOMBRE_LIDER_RED": "Silvia Rodríguez ", "AREA_MINISTERIO": "lunch", "OBSERVACIONES": ""}, {"NOMBRE": "Mayalita Martha", "TELEFONO": "", "ASISTE_CELULA": "SI", "TIENE_CELULA": "SI", "PROMEDIO_ASISTENCIA": "15", "NOMBRE_LIDER": "Silvanita Viteri", "NOMBRE_LIDER_RED": "Vivi Baquero", "AREA_MINISTERIO": "Coro", "OBSERVACIONES": ""}, {"NOMBRE": "Medina Jessica", "TELEFONO": "", "ASISTE_CELULA": "", "TIENE_CELULA": "", "PROMEDIO_ASISTENCIA": "", "NOMBRE_LIDER": "", "NOMBRE_LIDER_RED": "", "AREA_MINISTERIO": "", "OBSERVACIONES": ""}, {"NOMBRE": "Mejia Carolina ", "TELEFONO": "", "ASISTE_CELULA": "", "TIENE_CELULA": "", "PROMEDIO_ASISTENCIA": "", "NOMBRE_LIDER": "", "NOMBRE_LIDER_RED": "", "AREA_MINISTERIO": "", "OBSERVACIONES": ""}, {"NOMBRE": "Mejía Mishel", "TELEFONO": "", "ASISTE_CELULA": "si", "TIENE_CELULA": "si", "PROMEDIO_ASISTENCIA": "5", "NOMBRE_LIDER": "Irene Romero ", "NOMBRE_LIDER_RED": "Sara Huff", "AREA_MINISTERIO": "coro, jóvenes, propresenter, lunch, micrófono, escuela adoración ", "OBSERVACIONES": ""}, {"NOMBRE": "Mejía Pablo", "TELEFONO": "", "ASISTE_CELULA": "", "TIENE_CELULA": "", "PROMEDIO_ASISTENCIA": "", "NOMBRE_LIDER": "", "NOMBRE_LIDER_RED": "", "AREA_MINISTERIO": "", "OBSERVACIONES": ""}, {"NOMBRE": "Meneses Jonathan", "TELEFONO": "", "ASISTE_CELULA": "Si", "TIENE_CELULA": "Si", "PROMEDIO_ASISTENCIA": "12", "NOMBRE_LIDER": "Luis Felipe Almeida", "NOMBRE_LIDER_RED": "Pastor Jeffrey ", "AREA_MINISTERIO": "Prospesenter, Coro, Micrófono, escuela de alabanza, jóvenes, pre adolescentes", "OBSERVACIONES": ""}, {"NOMBRE": "Mercedes Chafla", "TELEFONO": "", "ASISTE_CELULA": "Si", "TIENE_CELULA": "No", "PROMEDIO_ASISTENCIA": "", "NOMBRE_LIDER": "Vanessa Santos", "NOMBRE_LIDER_RED": "Pastora Glinca", "AREA_MINISTERIO": "Propresenter, escuela de adoración ", "OBSERVACIONES": ""}, {"NOMBRE": "Montenegro Fabián ", "TELEFONO": "", "ASISTE_CELULA": "si", "TIENE_CELULA": "si", "PROMEDIO_ASISTENCIA": "5", "NOMBRE_LIDER": "Tito bedoya", "NOMBRE_LIDER_RED": "Luis Navarrete ", "AREA_MINISTERIO": "", "OBSERVACIONES": ""}, {"NOMBRE": "Mora Joel", "TELEFONO": "", "ASISTE_CELULA": "SI", "TIENE_CELULA": "SI", "PROMEDIO_ASISTENCIA": "5", "NOMBRE_LIDER": "Ps Martin", "NOMBRE_LIDER_RED": "Ps Martin", "AREA_MINISTERIO": "Instrumento", "OBSERVACIONES": ""}, {"NOMBRE": "Moreira Fresia", "TELEFONO": "", "ASISTE_CELULA": "SI", "TIENE_CELULA": "SI", "PROMEDIO_ASISTENCIA": "12", "NOMBRE_LIDER": "Ps Silvita Rodriguez ", "NOMBRE_LIDER_RED": "Ps Silvita Rodriguez ", "AREA_MINISTERIO": "Coro, Lunch", "OBSERVACIONES": ""}, {"NOMBRE": "Moreno María Elena ", "TELEFONO": "", "ASISTE_CELULA": "si", "TIENE_CELULA": "pre celula", "PROMEDIO_ASISTENCIA": "7", "NOMBRE_LIDER": "Esperanza Pastaz", "NOMBRE_LIDER_RED": "Ps. Glinka", "AREA_MINISTERIO": "escuela de adoración ", "OBSERVACIONES": ""}, {"NOMBRE": "Murillo Patricia", "TELEFONO": "", "ASISTE_CELULA": "", "TIENE_CELULA": "", "PROMEDIO_ASISTENCIA": "", "NOMBRE_LIDER": "", "NOMBRE_LIDER_RED": "", "AREA_MINISTERIO": "", "OBSERVACIONES": ""}, {"NOMBRE": "Musso Doris", "TELEFONO": "", "ASISTE_CELULA": "", "TIENE_CELULA": "", "PROMEDIO_ASISTENCIA": "", "NOMBRE_LIDER": "", "NOMBRE_LIDER_RED": "", "AREA_MINISTERIO": "", "OBSERVACIONES": ""}, {"NOMBRE": "Muñoz Isabel", "TELEFONO": "", "ASISTE_CELULA": "SI", "TIENE_CELULA": "SI", "PROMEDIO_ASISTENCIA": "6", "NOMBRE_LIDER": "Natasha Chavez", "NOMBRE_LIDER_RED": "Ma Paulina Gonzalez", "AREA_MINISTERIO": "Coro", "OBSERVACIONES": ""}, {"NOMBRE": "Mónica ", "TELEFONO": "", "ASISTE_CELULA": "", "TIENE_CELULA": "no tengo célula abierta todavía", "PROMEDIO_ASISTENCIA": "", "NOMBRE_LIDER": "Grace Mora ", "NOMBRE_LIDER_RED": "Flor Montenegro ", "AREA_MINISTERIO": "", "OBSERVACIONES": ""}, {"NOMBRE": "Naranjo Sebastian", "TELEFONO": "", "ASISTE_CELULA": "Si", "TIENE_CELULA": "Si", "PROMEDIO_ASISTENCIA": "6", "NOMBRE_LIDER": "Pastor Jeffrey ", "NOMBRE_LIDER_RED": "Pastor Jeffrey ", "AREA_MINISTERIO": "Coro, Mircrofono, Preadolescente ", "OBSERVACIONES": ""}, {"NOMBRE": "Nathaly Chuma ", "TELEFONO": "", "ASISTE_CELULA": "SI", "TIENE_CELULA": "NO", "PROMEDIO_ASISTENCIA": "no tengo celula", "NOMBRE_LIDER": "Marisol Zurita ", "NOMBRE_LIDER_RED": "Silvia Rodriguez ", "AREA_MINISTERIO": "lunch", "OBSERVACIONES": ""}, {"NOMBRE": "Nicole Salgado ", "TELEFONO": "", "ASISTE_CELULA": "SI", "TIENE_CELULA": "SI", "PROMEDIO_ASISTENCIA": "6-8", "NOMBRE_LIDER": "Geovy Mantilla", "NOMBRE_LIDER_RED": "Geovy Mantilla", "AREA_MINISTERIO": "microfono", "OBSERVACIONES": ""}, {"NOMBRE": "Nieto Eduardo", "TELEFONO": "", "ASISTE_CELULA": "", "TIENE_CELULA": "", "PROMEDIO_ASISTENCIA": "", "NOMBRE_LIDER": "", "NOMBRE_LIDER_RED": "", "AREA_MINISTERIO": "", "OBSERVACIONES": ""}, {"NOMBRE": "Nohemi Loachamin ", "TELEFONO": "", "ASISTE_CELULA": "", "TIENE_CELULA": "0 - 3", "PROMEDIO_ASISTENCIA": "", "NOMBRE_LIDER": "Polette Salas", "NOMBRE_LIDER_RED": "Sarah Huff", "AREA_MINISTERIO": "", "OBSERVACIONES": ""}, {"NOMBRE": "Ocampo Omaya", "TELEFONO": "", "ASISTE_CELULA": "SI", "TIENE_CELULA": "SI", "PROMEDIO_ASISTENCIA": "3", "NOMBRE_LIDER": "Lorena Cerna ", "NOMBRE_LIDER_RED": "Ps. Silvita ", "AREA_MINISTERIO": "Coro, Lunch, propesenter, microfono, Escuela Adoración ", "OBSERVACIONES": ""}, {"NOMBRE": "Oquendo Ana María", "TELEFONO": "", "ASISTE_CELULA": "si", "TIENE_CELULA": "si", "PROMEDIO_ASISTENCIA": "3-4", "NOMBRE_LIDER": "Elvi Cueva", "NOMBRE_LIDER_RED": "Ps. Glinka N", "AREA_MINISTERIO": "setlist", "OBSERVACIONES": ""}, {"NOMBRE": "Ortega Henry", "TELEFONO": "", "ASISTE_CELULA": "si", "TIENE_CELULA": "si", "PROMEDIO_ASISTENCIA": "7-8", "NOMBRE_LIDER": "Alfonso de los Reyes ", "NOMBRE_LIDER_RED": "Ps. Rolando ", "AREA_MINISTERIO": "coro, micrófono, lunch", "OBSERVACIONES": ""}, {"NOMBRE": "Oña Moisés", "TELEFONO": "", "ASISTE_CELULA": "", "TIENE_CELULA": "", "PROMEDIO_ASISTENCIA": "", "NOMBRE_LIDER": "", "NOMBRE_LIDER_RED": "", "AREA_MINISTERIO": "", "OBSERVACIONES": ""}, {"NOMBRE": "Pablo Mejía", "TELEFONO": "", "ASISTE_CELULA": "SI", "TIENE_CELULA": "SI", "PROMEDIO_ASISTENCIA": "5-6", "NOMBRE_LIDER": "Juan Pablo Landázuri", "NOMBRE_LIDER_RED": "Juan Pablo Landázuti", "AREA_MINISTERIO": "microfono", "OBSERVACIONES": ""}, {"NOMBRE": "Palma Ramiro", "TELEFONO": "", "ASISTE_CELULA": "", "TIENE_CELULA": "", "PROMEDIO_ASISTENCIA": "", "NOMBRE_LIDER": "", "NOMBRE_LIDER_RED": "", "AREA_MINISTERIO": "", "OBSERVACIONES": ""}, {"NOMBRE": "Paola Jarrín", "TELEFONO": "", "ASISTE_CELULA": "SI", "TIENE_CELULA": "SI", "PROMEDIO_ASISTENCIA": "3-4", "NOMBRE_LIDER": "Ximena Romero", "NOMBRE_LIDER_RED": "María Paulina Gonzalez", "AREA_MINISTERIO": "lunch", "OBSERVACIONES": ""}, {"NOMBRE": "Patricia Murillo ", "TELEFONO": "", "ASISTE_CELULA": "SI", "TIENE_CELULA": "SI", "PROMEDIO_ASISTENCIA": "2-3", "NOMBRE_LIDER": "Lorena de Guzman", "NOMBRE_LIDER_RED": "Gladys Zapata", "AREA_MINISTERIO": "coro", "OBSERVACIONES": ""}, {"NOMBRE": "Pauli", "TELEFONO": "", "ASISTE_CELULA": "", "TIENE_CELULA": "0 - 3", "PROMEDIO_ASISTENCIA": "", "NOMBRE_LIDER": "GIGI HOLGUÍN ", "NOMBRE_LIDER_RED": "GIGI HOLGUÍN ", "AREA_MINISTERIO": "", "OBSERVACIONES": ""}, {"NOMBRE": "Pazmiño Jazmin", "TELEFONO": "", "ASISTE_CELULA": "si", "TIENE_CELULA": "si", "PROMEDIO_ASISTENCIA": "6", "NOMBRE_LIDER": "Verònica Salazar", "NOMBRE_LIDER_RED": "Glinka Navarrete", "AREA_MINISTERIO": "coro, jovenes, microfono", "OBSERVACIONES": ""}, {"NOMBRE": "Ramiro Palma ", "TELEFONO": "", "ASISTE_CELULA": "SI", "TIENE_CELULA": "SI", "PROMEDIO_ASISTENCIA": "6-8", "NOMBRE_LIDER": "Luis Navarrete ", "NOMBRE_LIDER_RED": "Luis Navarrete ", "AREA_MINISTERIO": "sonido", "OBSERVACIONES": ""}, {"NOMBRE": "Ramos Byron ", "TELEFONO": "", "ASISTE_CELULA": "", "TIENE_CELULA": "", "PROMEDIO_ASISTENCIA": "", "NOMBRE_LIDER": "", "NOMBRE_LIDER_RED": "", "AREA_MINISTERIO": "", "OBSERVACIONES": ""}, {"NOMBRE": "Reatiqui  Norma del Rocio", "TELEFONO": "", "ASISTE_CELULA": "si", "TIENE_CELULA": "NO", "PROMEDIO_ASISTENCIA": "", "NOMBRE_LIDER": "Adelaida Vargas", "NOMBRE_LIDER_RED": "Glinka Navarrete", "AREA_MINISTERIO": "", "OBSERVACIONES": ""}, {"NOMBRE": "Rodriguez Andrés", "TELEFONO": "", "ASISTE_CELULA": "SI", "TIENE_CELULA": "NO", "PROMEDIO_ASISTENCIA": "0", "NOMBRE_LIDER": "Ps Jeff", "NOMBRE_LIDER_RED": "Ps Jeff", "AREA_MINISTERIO": "Stream", "OBSERVACIONES": ""}, {"NOMBRE": "Rodriguez David", "TELEFONO": "", "ASISTE_CELULA": "si", "TIENE_CELULA": "si", "PROMEDIO_ASISTENCIA": "7", "NOMBRE_LIDER": "Rolando Rodriguez", "NOMBRE_LIDER_RED": "Rolando Rodríguez ", "AREA_MINISTERIO": "Instrumento", "OBSERVACIONES": ""}, {"NOMBRE": "Rodriguez Juan Jose ", "TELEFONO": "", "ASISTE_CELULA": "SI", "TIENE_CELULA": "SI", "PROMEDIO_ASISTENCIA": "3", "NOMBRE_LIDER": "Pablo Estevez", "NOMBRE_LIDER_RED": "Ps Rolando", "AREA_MINISTERIO": "Bateria", "OBSERVACIONES": ""}, {"NOMBRE": "Rodríguez Rosa Angélica ", "TELEFONO": "", "ASISTE_CELULA": "", "TIENE_CELULA": "", "PROMEDIO_ASISTENCIA": "", "NOMBRE_LIDER": "", "NOMBRE_LIDER_RED": "", "AREA_MINISTERIO": "", "OBSERVACIONES": ""}, {"NOMBRE": "Romero Gabriel", "TELEFONO": "", "ASISTE_CELULA": "", "TIENE_CELULA": "", "PROMEDIO_ASISTENCIA": "", "NOMBRE_LIDER": "", "NOMBRE_LIDER_RED": "", "AREA_MINISTERIO": "Guitarra", "OBSERVACIONES": ""}, {"NOMBRE": "Romero Irene", "TELEFONO": "", "ASISTE_CELULA": "si", "TIENE_CELULA": "si", "PROMEDIO_ASISTENCIA": "10", "NOMBRE_LIDER": "Sara Huff", "NOMBRE_LIDER_RED": "Sara Huff", "AREA_MINISTERIO": "coro, lunch", "OBSERVACIONES": ""}, {"NOMBRE": "Romo Marjorie ", "TELEFONO": "", "ASISTE_CELULA": "", "TIENE_CELULA": "", "PROMEDIO_ASISTENCIA": "", "NOMBRE_LIDER": "", "NOMBRE_LIDER_RED": "", "AREA_MINISTERIO": "", "OBSERVACIONES": ""}, {"NOMBRE": "Rosa Angélica Rodríguez Cadena ", "TELEFONO": "", "ASISTE_CELULA": "SI", "TIENE_CELULA": "NO", "PROMEDIO_ASISTENCIA": "no tengo celula", "NOMBRE_LIDER": "Lis Pérez ", "NOMBRE_LIDER_RED": "Geovanna Mantilla ", "AREA_MINISTERIO": "otros", "OBSERVACIONES": ""}, {"NOMBRE": "Rosie Aguirre", "TELEFONO": "", "ASISTE_CELULA": "SI", "TIENE_CELULA": "SI", "PROMEDIO_ASISTENCIA": "mas de 8", "NOMBRE_LIDER": "Viviana Baquero", "NOMBRE_LIDER_RED": "Viviana Baquero", "AREA_MINISTERIO": "Instrumento", "OBSERVACIONES": ""}, {"NOMBRE": "Ruíz Karina", "TELEFONO": "", "ASISTE_CELULA": "", "TIENE_CELULA": "", "PROMEDIO_ASISTENCIA": "", "NOMBRE_LIDER": "", "NOMBRE_LIDER_RED": "", "AREA_MINISTERIO": "", "OBSERVACIONES": ""}, {"NOMBRE": "Salazar Isabel", "TELEFONO": "", "ASISTE_CELULA": "", "TIENE_CELULA": "", "PROMEDIO_ASISTENCIA": "", "NOMBRE_LIDER": "", "NOMBRE_LIDER_RED": "", "AREA_MINISTERIO": "Micrófono", "OBSERVACIONES": ""}, {"NOMBRE": "Salazar Marcelo ", "TELEFONO": "", "ASISTE_CELULA": "SI", "TIENE_CELULA": "Precelula", "PROMEDIO_ASISTENCIA": "2", "NOMBRE_LIDER": "Carlos Carranza", "NOMBRE_LIDER_RED": "Patricio Garcia ", "AREA_MINISTERIO": "Sonido, Setlist", "OBSERVACIONES": ""}, {"NOMBRE": "Salgado Nicole", "TELEFONO": "", "ASISTE_CELULA": "", "TIENE_CELULA": "", "PROMEDIO_ASISTENCIA": "", "NOMBRE_LIDER": "", "NOMBRE_LIDER_RED": "", "AREA_MINISTERIO": "", "OBSERVACIONES": ""}, {"NOMBRE": "Sanguña Sara", "TELEFONO": "", "ASISTE_CELULA": "si", "TIENE_CELULA": "si", "PROMEDIO_ASISTENCIA": "4", "NOMBRE_LIDER": "Carolina Sanchez", "NOMBRE_LIDER_RED": "Ps. Glinka", "AREA_MINISTERIO": "coro, micrófono", "OBSERVACIONES": ""}, {"NOMBRE": "Segovia Alfredo", "TELEFONO": "", "ASISTE_CELULA": "", "TIENE_CELULA": "", "PROMEDIO_ASISTENCIA": "", "NOMBRE_LIDER": "", "NOMBRE_LIDER_RED": "", "AREA_MINISTERIO": "", "OBSERVACIONES": ""}, {"NOMBRE": "Simbaña Gladys", "TELEFONO": "", "ASISTE_CELULA": "SI", "TIENE_CELULA": "No", "PROMEDIO_ASISTENCIA": "0", "NOMBRE_LIDER": "Elvita Cueva", "NOMBRE_LIDER_RED": "Ps Glinka", "AREA_MINISTERIO": "Intercesión", "OBSERVACIONES": ""}, {"NOMBRE": "Soria Esteban", "TELEFONO": "", "ASISTE_CELULA": "si", "TIENE_CELULA": "si", "PROMEDIO_ASISTENCIA": "9", "NOMBRE_LIDER": "Ps. Jeffrey Huff", "NOMBRE_LIDER_RED": "Ps. Jeffrey Huff", "AREA_MINISTERIO": "Instrumento", "OBSERVACIONES": ""}, {"NOMBRE": "Soria Pablo", "TELEFONO": "", "ASISTE_CELULA": "", "TIENE_CELULA": "", "PROMEDIO_ASISTENCIA": "", "NOMBRE_LIDER": "", "NOMBRE_LIDER_RED": "", "AREA_MINISTERIO": "", "OBSERVACIONES": ""}, {"NOMBRE": "Soria Rosario", "TELEFONO": "", "ASISTE_CELULA": "SI", "TIENE_CELULA": "SI", "PROMEDIO_ASISTENCIA": "5", "NOMBRE_LIDER": "Belen ", "NOMBRE_LIDER_RED": "Ps Silvita ", "AREA_MINISTERIO": "Coro, Lunch", "OBSERVACIONES": ""}, {"NOMBRE": "Suarez Blanca", "TELEFONO": "", "ASISTE_CELULA": "SI", "TIENE_CELULA": "SI", "PROMEDIO_ASISTENCIA": "6", "NOMBRE_LIDER": "Janeth Echeverria", "NOMBRE_LIDER_RED": "Vivi Baquero", "AREA_MINISTERIO": "Coro", "OBSERVACIONES": ""}, {"NOMBRE": "Sánchez Ma.del Mar", "TELEFONO": "", "ASISTE_CELULA": "", "TIENE_CELULA": "", "PROMEDIO_ASISTENCIA": "", "NOMBRE_LIDER": "", "NOMBRE_LIDER_RED": "", "AREA_MINISTERIO": "Micrófono", "OBSERVACIONES": ""}, {"NOMBRE": "Tapia David", "TELEFONO": "", "ASISTE_CELULA": "", "TIENE_CELULA": "", "PROMEDIO_ASISTENCIA": "", "NOMBRE_LIDER": "", "NOMBRE_LIDER_RED": "", "AREA_MINISTERIO": "", "OBSERVACIONES": ""}, {"NOMBRE": "Tatiana Iza", "TELEFONO": "", "ASISTE_CELULA": "SI", "TIENE_CELULA": "SI", "PROMEDIO_ASISTENCIA": "6-8", "NOMBRE_LIDER": "Paola Gabela", "NOMBRE_LIDER_RED": "Pastora Sylvia de Rodríguez ", "AREA_MINISTERIO": "coro", "OBSERVACIONES": ""}, {"NOMBRE": "Tejeda Ana Paula ", "TELEFONO": "", "ASISTE_CELULA": "si", "TIENE_CELULA": "si", "PROMEDIO_ASISTENCIA": "9", "NOMBRE_LIDER": "Nicole Salgado", "NOMBRE_LIDER_RED": "Geovy Mantilla", "AREA_MINISTERIO": "Escuela de adoracion", "OBSERVACIONES": ""}, {"NOMBRE": "Toapanta Veronica", "TELEFONO": "", "ASISTE_CELULA": "si", "TIENE_CELULA": "si", "PROMEDIO_ASISTENCIA": "5", "NOMBRE_LIDER": "Laura Cedeño", "NOMBRE_LIDER_RED": "Gladys Zapata ", "AREA_MINISTERIO": "coro, propesenter, lunch", "OBSERVACIONES": ""}, {"NOMBRE": "Toinga Israel", "TELEFONO": "", "ASISTE_CELULA": "SI", "TIENE_CELULA": "SI", "PROMEDIO_ASISTENCIA": "8", "NOMBRE_LIDER": "Ps JEff", "NOMBRE_LIDER_RED": "Ps JEff", "AREA_MINISTERIO": "Coro, microfono, propresenter", "OBSERVACIONES": ""}, {"NOMBRE": "Torres Daniela Karolina ", "TELEFONO": "", "ASISTE_CELULA": "si", "TIENE_CELULA": "si", "PROMEDIO_ASISTENCIA": "6", "NOMBRE_LIDER": "Nohemí Benitez", "NOMBRE_LIDER_RED": "Sara Huff", "AREA_MINISTERIO": "escuela de adoración ", "OBSERVACIONES": ""}, {"NOMBRE": "Urbina José", "TELEFONO": "", "ASISTE_CELULA": "SI", "TIENE_CELULA": "SI", "PROMEDIO_ASISTENCIA": "6", "NOMBRE_LIDER": "Juan Pablo Landazuri", "NOMBRE_LIDER_RED": "Juan Pablo Landazuri", "AREA_MINISTERIO": "Bateria", "OBSERVACIONES": ""}, {"NOMBRE": "Uribe Ramiro", "TELEFONO": "", "ASISTE_CELULA": "SI", "TIENE_CELULA": "SI", "PROMEDIO_ASISTENCIA": "5", "NOMBRE_LIDER": "Eduardo Castellanos", "NOMBRE_LIDER_RED": "Eduardo Castellanos", "AREA_MINISTERIO": "Coro, lunch, micrófono", "OBSERVACIONES": ""}, {"NOMBRE": "Urquizo Roberto", "TELEFONO": "", "ASISTE_CELULA": "", "TIENE_CELULA": "", "PROMEDIO_ASISTENCIA": "", "NOMBRE_LIDER": "", "NOMBRE_LIDER_RED": "", "AREA_MINISTERIO": "", "OBSERVACIONES": ""}, {"NOMBRE": "Urquizo Sabrina", "TELEFONO": "", "ASISTE_CELULA": "Si", "TIENE_CELULA": "Si", "PROMEDIO_ASISTENCIA": "6", "NOMBRE_LIDER": "Beira Erraez", "NOMBRE_LIDER_RED": "Pastora Glinka", "AREA_MINISTERIO": "Coro, Micrófono, lunch", "OBSERVACIONES": ""}, {"NOMBRE": "Vaca Jenny", "TELEFONO": "", "ASISTE_CELULA": "", "TIENE_CELULA": "", "PROMEDIO_ASISTENCIA": "", "NOMBRE_LIDER": "", "NOMBRE_LIDER_RED": "", "AREA_MINISTERIO": "Coro", "OBSERVACIONES": ""}, {"NOMBRE": "Vallejo Angélica", "TELEFONO": "", "ASISTE_CELULA": "Si", "TIENE_CELULA": "Si", "PROMEDIO_ASISTENCIA": "9", "NOMBRE_LIDER": "Nicole  Salgado", "NOMBRE_LIDER_RED": "Geovy Mantilla ", "AREA_MINISTERIO": "Coro, Microfono, Propesenter, lunch, jóvenes, Preadolescentes ", "OBSERVACIONES": ""}, {"NOMBRE": "Vallejo Ronny", "TELEFONO": "", "ASISTE_CELULA": "si", "TIENE_CELULA": "si", "PROMEDIO_ASISTENCIA": "5", "NOMBRE_LIDER": "Ps Jeffrey huff", "NOMBRE_LIDER_RED": "Ps. Jeffrey Huff", "AREA_MINISTERIO": "coro, micrófono, propresenter, pre adolescentes, lunch", "OBSERVACIONES": ""}, {"NOMBRE": "Valverde Sandra ", "TELEFONO": "", "ASISTE_CELULA": "si", "TIENE_CELULA": "pre celula", "PROMEDIO_ASISTENCIA": "3", "NOMBRE_LIDER": "Paula Vallego", "NOMBRE_LIDER_RED": "Vivi Baquero", "AREA_MINISTERIO": "sonido, setlist, lunchs", "OBSERVACIONES": ""}, {"NOMBRE": "Vane", "TELEFONO": "", "ASISTE_CELULA": "", "TIENE_CELULA": "0 - 3", "PROMEDIO_ASISTENCIA": "", "NOMBRE_LIDER": "Irene Romero", "NOMBRE_LIDER_RED": "Sara Huff", "AREA_MINISTERIO": "", "OBSERVACIONES": ""}, {"NOMBRE": "Vega Cecilia ", "TELEFONO": "", "ASISTE_CELULA": "SI", "TIENE_CELULA": "SI", "PROMEDIO_ASISTENCIA": "8", "NOMBRE_LIDER": "Carlita Guilcapi", "NOMBRE_LIDER_RED": "Ps Glinka", "AREA_MINISTERIO": "Lunch", "OBSERVACIONES": ""}, {"NOMBRE": "Villacis Belén", "TELEFONO": "", "ASISTE_CELULA": "SI", "TIENE_CELULA": "SI", "PROMEDIO_ASISTENCIA": "4", "NOMBRE_LIDER": "Ximena Romero", "NOMBRE_LIDER_RED": "Ma Paulina Gonzalez", "AREA_MINISTERIO": "Coro, Lunch, intercesión", "OBSERVACIONES": ""}, {"NOMBRE": "Villarreal Verónica ", "TELEFONO": "", "ASISTE_CELULA": "si", "TIENE_CELULA": "pre célula ", "PROMEDIO_ASISTENCIA": "3", "NOMBRE_LIDER": "Bolivia Caicedo", "NOMBRE_LIDER_RED": "Glinka Navarrete ", "AREA_MINISTERIO": "propesenter", "OBSERVACIONES": ""}, {"NOMBRE": "Villegas Ciro Fabricio ", "TELEFONO": "", "ASISTE_CELULA": "SI", "TIENE_CELULA": "No", "PROMEDIO_ASISTENCIA": "0", "NOMBRE_LIDER": "Pablo Estevez ", "NOMBRE_LIDER_RED": "Ps Rolando", "AREA_MINISTERIO": "Sonido, setlist", "OBSERVACIONES": ""}, {"NOMBRE": "Vizcaino Evelyn", "TELEFONO": "", "ASISTE_CELULA": "Si", "TIENE_CELULA": "Pre célula ", "PROMEDIO_ASISTENCIA": "5", "NOMBRE_LIDER": "María Gabriela González ", "NOMBRE_LIDER_RED": "Pastora Silvia Rodríguez ", "AREA_MINISTERIO": "Jóvenes, propesenter ", "OBSERVACIONES": ""}, {"NOMBRE": "Yépez Marcela", "TELEFONO": "", "ASISTE_CELULA": "Si", "TIENE_CELULA": "Pre célula", "PROMEDIO_ASISTENCIA": "4", "NOMBRE_LIDER": "Estefany De Corella", "NOMBRE_LIDER_RED": "Viví Baquero", "AREA_MINISTERIO": "Escuela Adoración, Lunch", "OBSERVACIONES": ""}, {"NOMBRE": "Zambrano Norma", "TELEFONO": "", "ASISTE_CELULA": "", "TIENE_CELULA": "", "PROMEDIO_ASISTENCIA": "", "NOMBRE_LIDER": "", "NOMBRE_LIDER_RED": "", "AREA_MINISTERIO": "", "OBSERVACIONES": ""}, {"NOMBRE": "Zurita Daniel ", "TELEFONO": "", "ASISTE_CELULA": "SI", "TIENE_CELULA": "SI", "PROMEDIO_ASISTENCIA": "3", "NOMBRE_LIDER": "Ps Danny", "NOMBRE_LIDER_RED": "Ps Danny", "AREA_MINISTERIO": "Sonido, setlist", "OBSERVACIONES": ""}];
+
+// ── State ──────────────────────────────────────────────────────────────────
+let data = RAW.filter(p => p.NOMBRE.trim() !== '');
+let filtered = [];
+let selectedIdx = null;
+
+// ── DOM refs (declared BEFORE any use) ────────────────────────────────────
+const listPanel   = document.getElementById('listPanel');
+const detailPanel = document.getElementById('detailPanel');
+const searchInput = document.getElementById('searchInput');
+const totalCountEl = document.getElementById('totalCount');
+const showCountEl  = document.getElementById('showCount');
+const toast        = document.getElementById('toast');
+
+// ── Loading overlay ────────────────────────────────────────────────────────
+function showLoading(msg) {
+  let el = document.getElementById('loadingOverlay');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'loadingOverlay';
+    el.style.cssText = 'position:fixed;inset:0;background:rgba(18,18,31,0.88);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;font-family:Lato,sans-serif;color:#C9A84C;font-size:15px;';
+    el.innerHTML = '<div style="font-size:38px;animation:spin 1s linear infinite">⟳</div><div id="loadingMsg"></div><style>@keyframes spin{to{transform:rotate(360deg)}}</style>';
+    document.body.appendChild(el);
+  }
+  document.getElementById('loadingMsg').textContent = msg || 'Cargando…';
+  el.style.display = 'flex';
+}
+function hideLoading() {
+  const el = document.getElementById('loadingOverlay');
+  if (el) el.style.display = 'none';
+}
+
+// ── Google Sheets sync ─────────────────────────────────────────────────────
+async function loadFromSheet() {
+  showLoading('Conectando con Google Sheets…');
+  try {
+    const res = await fetch(SHEET_URL);
+    const rows = await res.json();
+    if (rows.length > 1) {
+      const headers = rows[0];
+      const map = {};
+      for (let i = 1; i < rows.length; i++) {
+        const obj = {};
+        headers.forEach((h, j) => { obj[h] = (rows[i][j] || '').toString(); });
+        if (obj.NOMBRE && obj.NOMBRE.trim()) map[obj.NOMBRE.trim()] = obj;
+      }
+      data = data.map(p => {
+        const s = map[p.NOMBRE.trim()];
+        return s ? { ...p, ...s, _photo: s.FOTO || p._photo || '' } : p;
+      });
+    }
+  } catch(e) {
+    console.warn('No se pudo cargar desde Google Sheets:', e);
+  }
+  hideLoading();
+}
+
+async function saveToSheet(p) {
+  showLoading('Guardando en Google Sheets…');
+  try {
+    await fetch(SHEET_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        NOMBRE: p.NOMBRE.trim(),
+        TELEFONO: p.TELEFONO || '',
+        ASISTE_CELULA: p.ASISTE_CELULA || '',
+        TIENE_CELULA: p.TIENE_CELULA || '',
+        PROMEDIO_ASISTENCIA: p.PROMEDIO_ASISTENCIA || '',
+        NOMBRE_LIDER: p.NOMBRE_LIDER || '',
+        NOMBRE_LIDER_RED: p.NOMBRE_LIDER_RED || '',
+        AREA_MINISTERIO: p.AREA_MINISTERIO || '',
+        OBSERVACIONES: p.OBSERVACIONES || '',
+        FOTO: p._photo || ''
+      })
+    });
+  } catch(e) {
+    console.warn('Error al guardar:', e);
+  }
+  hideLoading();
+}
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+function getInitials(name) {
+  return name.trim().split(/\s+/).slice(0,2).map(w => w[0]||'').join('').toUpperCase() || '?';
+}
+function getCelulaDotClass(val) {
+  const v = (val||'').toLowerCase().trim();
+  if (v==='si'||v==='sí') return 'dot-yes';
+  if (v==='no') return 'dot-no';
+  return 'dot-none';
+}
+function getBadge(label, val) {
+  if (!val) return '';
+  const v = (val||'').toLowerCase().trim();
+  const cls = (v==='si'||v==='sí') ? 'badge-yes' : v==='no' ? 'badge-no' : 'badge-pre';
+  return `<span class="badge ${cls}">${label}: ${val.toUpperCase()}</span>`;
+}
+function showToast() {
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2500);
+}
+
+// ── Render list ────────────────────────────────────────────────────────────
+function renderList() {
+  showCountEl.textContent = filtered.length;
+  if (!filtered.length) {
+    listPanel.innerHTML = '<div class="no-results">Sin resultados</div>';
+    return;
+  }
+  listPanel.innerHTML = filtered.map(p => {
+    const idx = data.indexOf(p);
+    const active = idx === selectedIdx ? 'active' : '';
+    const dot = getCelulaDotClass(p.ASISTE_CELULA);
+    const av = p._photo ? `<img src="${p._photo}" alt="">` : getInitials(p.NOMBRE);
+    return `<div class="person-item ${active}" data-idx="${idx}">
+      <div class="avatar">${av}</div>
+      <div class="person-info">
+        <div class="person-name">${p.NOMBRE.trim()}</div>
+        <div class="person-area">${p.AREA_MINISTERIO||'—'}</div>
+      </div>
+      <div class="celula-dot ${dot}"></div>
+    </div>`;
+  }).join('');
+  listPanel.querySelectorAll('.person-item').forEach(el => {
+    el.addEventListener('click', () => {
+      selectedIdx = parseInt(el.dataset.idx);
+      renderList();
+      renderDetail(selectedIdx);
+    });
+  });
+}
+
+// ── Render detail ─────────────────────────────────────────────────────────
+function renderDetail(idx) {
+  const p = data[idx];
+  detailPanel.innerHTML = `
+    <div class="card">
+      <div class="card-header">
+        <div class="photo-area">
+          <div class="photo-circle" id="photoBtn">
+            ${p._photo ? `<img src="${p._photo}" alt="">` : `<span>${getInitials(p.NOMBRE)}</span>`}
+            <div class="photo-overlay"><span>📷</span>Subir foto</div>
+          </div>
+          <input type="file" id="photoInput" accept="image/*">
+        </div>
+        <div class="header-info">
+          <div class="header-name">${p.NOMBRE.trim()}</div>
+          <div class="header-area">${p.AREA_MINISTERIO||'Área sin definir'}</div>
+          <div class="badges">${getBadge('Asiste Célula',p.ASISTE_CELULA)}${getBadge('Tiene Célula',p.TIENE_CELULA)}</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Número de Teléfono</label>
+            <input type="tel" id="f_tel" value="${p.TELEFONO||''}" placeholder="+593 99 999 9999">
+          </div>
+          <div class="form-group">
+            <label>Promedio Asistencia a Célula</label>
+            <input type="text" id="f_prom" value="${p.PROMEDIO_ASISTENCIA||''}" placeholder="Ej: 5, 8-10">
+          </div>
+          <div class="form-group">
+            <label>¿Asiste a Célula?</label>
+            <select id="f_asiste">
+              <option value="">— Sin datos —</option>
+              <option value="SI" ${(p.ASISTE_CELULA||'').toUpperCase()==='SI'?'selected':''}>Sí</option>
+              <option value="NO" ${(p.ASISTE_CELULA||'').toUpperCase()==='NO'?'selected':''}>No</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>¿Tiene Célula?</label>
+            <select id="f_tiene">
+              <option value="">— Sin datos —</option>
+              <option value="SI" ${(p.TIENE_CELULA||'').toUpperCase()==='SI'?'selected':''}>Sí</option>
+              <option value="NO" ${(p.TIENE_CELULA||'').toUpperCase()==='NO'?'selected':''}>No</option>
+              <option value="PRECELULA" ${/(pre)/i.test(p.TIENE_CELULA||'')?'selected':''}>Pre-Célula</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Nombre de Líder</label>
+            <input type="text" id="f_lider" value="${p.NOMBRE_LIDER||''}" placeholder="Nombre del líder inmediato">
+          </div>
+          <div class="form-group">
+            <label>Nombre de Líder de Red</label>
+            <input type="text" id="f_lider_red" value="${p.NOMBRE_LIDER_RED||''}" placeholder="Nombre del líder de red">
+          </div>
+          <div class="form-group full">
+            <label>Área del Ministerio</label>
+            <input type="text" id="f_area" value="${p.AREA_MINISTERIO||''}" placeholder="Ej: Coro, Micrófono, Lunch…">
+          </div>
+          <div class="form-group full">
+            <label>Observaciones</label>
+            <textarea id="f_obs" placeholder="Notas adicionales…">${p.OBSERVACIONES||''}</textarea>
+          </div>
+        </div>
+      </div>
+      <div class="card-footer">
+        <button class="btn btn-outline" id="cancelBtn">Cancelar</button>
+        <button class="btn btn-gold" id="saveBtn">💾 Guardar Cambios</button>
+      </div>
+    </div>`;
+
+  document.getElementById('photoBtn').addEventListener('click', () => document.getElementById('photoInput').click());
+  document.getElementById('photoInput').addEventListener('change', e => {
+    const file = e.target.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async ev => {
+      data[idx]._photo = ev.target.result;
+      await saveToSheet(data[idx]);
+      renderDetail(idx); renderList();
+    };
+    reader.readAsDataURL(file);
+  });
+
+  document.getElementById('saveBtn').addEventListener('click', async () => {
+    data[idx].TELEFONO           = document.getElementById('f_tel').value;
+    data[idx].ASISTE_CELULA      = document.getElementById('f_asiste').value;
+    data[idx].TIENE_CELULA       = document.getElementById('f_tiene').value;
+    data[idx].PROMEDIO_ASISTENCIA= document.getElementById('f_prom').value;
+    data[idx].NOMBRE_LIDER       = document.getElementById('f_lider').value;
+    data[idx].NOMBRE_LIDER_RED   = document.getElementById('f_lider_red').value;
+    data[idx].AREA_MINISTERIO    = document.getElementById('f_area').value;
+    data[idx].OBSERVACIONES      = document.getElementById('f_obs').value;
+    await saveToSheet(data[idx]);
+    renderList(); renderDetail(idx); showToast();
+  });
+
+  document.getElementById('cancelBtn').addEventListener('click', () => renderDetail(idx));
+}
+
+// ── Search ─────────────────────────────────────────────────────────────────
+searchInput.addEventListener('input', () => {
+  const q = searchInput.value.toLowerCase();
+  filtered = data.filter(p =>
+    p.NOMBRE.toLowerCase().includes(q) ||
+    (p.AREA_MINISTERIO||'').toLowerCase().includes(q) ||
+    (p.NOMBRE_LIDER||'').toLowerCase().includes(q) ||
+    (p.NOMBRE_LIDER_RED||'').toLowerCase().includes(q)
+  );
+  renderList();
+});
+
+// ── Boot ───────────────────────────────────────────────────────────────────
+(async () => {
+  await loadFromSheet();
+  totalCountEl.textContent = data.length;
+  filtered = [...data];
+  renderList();
+})();
+</script>
+</body>
+</html>
